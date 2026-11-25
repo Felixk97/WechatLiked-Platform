@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>My Apps</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#2f6fed">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="My Apps">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<style>
+:root{--bg:#f4f5f8;--card:#fff;--text:#1b1c20;--sub:#6b6e78;--line:#e2e4ea;--acc:#2f6fed;--bad:#d93a3a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root{--bg:#0f0f12;--card:#1a1b20;--text:#f2f3f5;--sub:#9a9da8;--line:#2a2c34;--acc:#6b9bff;--bad:#ff6b6b}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{display:flex;align-items:center;justify-content:space-between;padding:18px 16px 8px}
+h1{font-size:26px;margin:0}
+button,select{font:inherit;color:var(--acc);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 13px;cursor:pointer}
+button.primary{background:var(--acc);color:#fff;border-color:var(--acc)}
+button.danger{color:var(--bad)}
+button:disabled{opacity:.6}
+input[type=text],input[type=password]{width:100%;font:inherit;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:11px 13px}
+#tools{padding:4px 16px}
+#chips{display:flex;gap:8px;overflow-x:auto;padding:10px 16px 2px}
+.chip{white-space:nowrap;padding:7px 14px;border-radius:999px;font-size:14px}
+.chip.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;padding:14px 16px 28px}
+.app{position:relative;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px 10px 16px;text-align:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.app.dim{opacity:.55}
+.ico{width:64px;height:64px;margin:0 auto;border-radius:16px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:36px;overflow:hidden}
+.ico img{width:100%;height:100%;object-fit:cover}
+.nm{font-weight:600;margin-top:10px;word-break:break-word}
+.ct{font-size:12px;color:var(--sub)}
+.star{position:absolute;top:6px;right:6px;border:0;background:none;color:var(--sub);font-size:20px;padding:4px 8px}
+.star.on{color:#f5a623}
+.empty{padding:40px 16px;color:var(--sub);text-align:center}
+.panel{padding:12px 16px 32px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.row{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:12px;display:grid;grid-template-columns:64px 1fr;gap:8px}
+.row .full{grid-column:1/-1}
+.row .ico{width:56px;height:56px;font-size:30px}
+.row label{font-size:14px;color:var(--sub);display:flex;gap:6px;align-items:center}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+#viewer{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;z-index:10;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+#viewer .top{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line)}
+#viewer .top b{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#viewer .hint{font-size:12px;color:var(--sub);padding:4px 12px}
+#viewer iframe{flex:1;border:0;width:100%;background:#fff}
+a.btn{color:var(--acc);text-decoration:none;border:1px solid var(--line);border-radius:12px;padding:9px 13px;background:var(--card)}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:20;padding:16px}
+#modal form{background:var(--card);border-radius:20px;padding:20px;width:100%;max-width:340px}
+#modal h2{margin:0 0 12px;font-size:20px}
+#lerr{color:var(--bad);font-size:14px;min-height:20px;margin:6px 0}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#222;color:#fff;padding:10px 18px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:30}
+#toast.show{opacity:1}#toast.bad{background:var(--bad)}
+
+:root[data-theme=light]{--bg:#f4f5f8;--card:#fff;--text:#1b1c20;--sub:#6b6e78;--line:#e2e4ea;--acc:#2f6fed}
+:root[data-theme=dark]{--bg:#0f0f12;--card:#1a1b20;--text:#f2f3f5;--sub:#9a9da8;--line:#2a2c34;--acc:#6b9bff}
+:root[data-theme=ocean]{--bg:#0b1e2d;--card:#12304a;--text:#eaf6ff;--sub:#8fb4cc;--line:#1d4466;--acc:#4cc2ff}
+:root[data-theme=forest]{--bg:#10201a;--card:#183328;--text:#eaf7ef;--sub:#8fb8a2;--line:#24493a;--acc:#5fd68f}
+#frames{flex:1;position:relative}
+#frames iframe{position:absolute;inset:0;width:100%;height:100%;display:none}
+#frames iframe.on{display:block}
+#tabs{flex:1;display:flex;gap:6px;overflow-x:auto}
+.tab{white-space:nowrap;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:var(--card);font-size:14px;cursor:pointer}
+.tab.on{border-color:var(--acc);color:var(--acc)}
+.tab b{margin-left:8px;color:var(--sub);padding:0 4px}
+#exitfs{display:none;position:fixed;top:calc(8px + env(safe-area-inset-top,0px));right:8px;z-index:11;opacity:.75}
+#viewer.imm .top{display:none}
+#viewer.imm #exitfs{display:block}
+.sec{padding:10px 16px 0;font-size:13px;color:var(--sub)}
+.mini{display:flex;gap:8px;flex-wrap:wrap;padding:6px 16px 0}
+.mini .chip{color:var(--text)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--sub);margin-right:6px}
+.dot.up{background:#2ecc71}.dot.down{background:var(--bad)}.dot.auth{background:#f5a623}
+#warn{padding:6px 12px;font-size:13px;color:var(--bad);background:var(--card);border-bottom:1px solid var(--line)}#warn[hidden]{display:none}
+.drag{touch-action:none;cursor:grab}
+
+/* V9 workspace personalization */
+#workspace-settings{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:9px 16px;border-bottom:1px solid var(--line)}
+#workspace-settings select,#workspace-settings button{padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text)}
+#overview{padding:14px 16px;background:var(--card);margin:12px 16px;border-radius:15px;border:1px solid var(--line)}
+#overview h2{margin:0 0 7px;font-size:19px}#overview p{margin:0;color:var(--sub);font-size:13px}
+.grid.layout-list{display:flex;flex-direction:column}.grid.layout-list .app{display:flex;align-items:center;gap:14px;text-align:left;min-height:76px}.grid.layout-list .ico{flex:0 0 46px;margin:0}.grid.layout-list .nm{flex:1}
+.grid.layout-compact{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}.grid.layout-compact .app{padding:10px}.grid.layout-compact .ico{font-size:25px}
+.grid.card-small .app{padding:10px}.grid.card-large{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}.grid.card-large .app{padding:26px}
+.app{transition:transform .16s ease,box-shadow .16s ease}.app:hover{transform:translateY(-2px)}
+body[data-wallpaper="soft"]{background:radial-gradient(ellipse at top right,rgba(80,150,210,.15),transparent 65%),var(--bg)}
+body[data-wallpaper="warm"]{background:radial-gradient(ellipse at top left,rgba(245,158,80,.16),transparent 65%),var(--bg)}
+@media(prefers-reduced-motion:reduce){.app{transition:none}.app:hover{transform:none}}
+#warn button{padding:4px 8px;font-size:12px}
+#viewer{overscroll-behavior:none}#frames{overscroll-behavior:none}
+@supports(height:100dvh){#viewer{height:100dvh;bottom:auto}}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header><h1>My Apps</h1><div class="acts"><button id="install" type="button" hidden>⬇ Install</button><button id="th" title="Theme">🎨</button><div class="acts" id="hdr"></div></div></header>
+<div id="tools"><input type="text" id="q" placeholder="Search apps…" autocomplete="off"></div>
+<div id="workspace-settings"><label>View <select id="layout"><option value="grid">Grid</option><option value="list">List</option><option value="compact">Compact</option></select></label><label>Cards <select id="cards"><option value="normal">Normal</option><option value="small">Small</option><option value="large">Large</option></select></label><label>Background <select id="wallpaper"><option value="plain">Plain</option><option value="soft">Soft blue</option><option value="warm">Warm</option></select></label><label>Tabs <select id="tabcount"></select></label></div><div id="overview"></div><div id="chips"></div>
+<details id="sync-panel" style="margin:10px 16px;padding:12px;border:1px solid var(--line);border-radius:12px"><summary>☁ Sync across devices (optional)</summary><p style="font-size:13px;color:var(--sub)">Use the same private key (20+ characters, not your admin password) on each device. Changes are merged, never overwritten: favorites and settings follow the newest change, and launch counts add up across devices. Tick “Remember key” for automatic syncing, which stores the key in this browser.</p><input id="sync-key" type="password" autocomplete="off" placeholder="Private sync key" style="max-width:360px;width:100%"><label style="display:block;font-size:13px;margin:6px 0"><input type="checkbox" id="sync-remember"> Remember key and sync automatically</label><button id="sync-now" type="button">Sync now</button><p id="sync-message" role="status" style="font-size:13px"></p></details><div id="iostip" hidden style="margin:8px 16px;padding:10px;border:1px solid var(--line);border-radius:12px;font-size:13px">To install on iPhone or iPad: tap Share, then “Add to Home Screen”. <button id="iosx" type="button">Got it</button></div><details id="device-check" style="margin:10px 16px;padding:12px;border:1px solid var(--line);border-radius:12px"><summary>📱 Device setup & camera test</summary><p>Test your device camera before using Sample Tally. The embedded app must also request its own permission.</p><div id="device-report" role="status" style="white-space:pre-line;font-size:13px;margin:8px 0"></div><button id="camera-test" type="button">Test camera</button><button id="camera-stop" type="button" hidden>Stop camera</button><video id="camera-preview" autoplay playsinline muted hidden style="display:block;width:min(100%,360px);max-height:260px;border-radius:12px;margin-top:8px"></video><p style="font-size:12px">iPhone: Safari → Share → Add to Home Screen. Android: Chrome → Install app. If embedded camera fails, use ↗ to open Sample Tally directly. On iPhone, immersive mode substitutes for native fullscreen.</p></details><div id="main"></div>
+<div id="viewer">
+  <div class="top"><button id="home">⌂ Home</button><div id="tabs"></div><button id="rl" title="Reload">↻</button><button id="fs" title="Fullscreen">⛶</button><a class="btn" id="vopen" target="_blank" rel="noopener" title="Open in new tab">↗</a></div>
+  <div id="warn" hidden><span>Not loading? The site may refuse embedding or be slow. Try ↻, or open it in a new tab with ↗. For camera scanning, allow camera access in the browser and in the app.</span> <button id="wfix" type="button">Copy embed fix</button> <button id="wtab" type="button" hidden>Always open in new tab</button></div>
+  <div id="frames"></div>
+  <button id="exitfs">✕ Exit</button>
+</div>
+<div id="modal"><form id="lf">
+  <h2>Admin login</h2>
+  <input type="password" id="pw" placeholder="Password" autocomplete="current-password">
+  <div id="lerr"></div>
+  <div class="acts"><button type="button" id="lc">Cancel</button><button class="primary" id="ls">Sign in</button></div>
+</form></div>
+<input type="file" id="file" accept="application/json,.json" hidden>
+<input type="file" id="img" accept="image/*" hidden>
+<div id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let apps = [], admin = false, editing = false, dirty = false, q = "", cat = "All", imgIdx = -1, loadErr = false;
+let favs = []; try { favs = JSON.parse(localStorage.getItem("favs") || "[]"); } catch {}
+const saveFavs = () => { try { localStorage.setItem("favs", JSON.stringify(favs)); } catch {} };
+let uses = {}; try { uses = JSON.parse(localStorage.getItem("uses") || "{}"); } catch {}
+let recent = []; try { recent = JSON.parse(localStorage.getItem("recent") || "[]"); } catch {}
+const pref = (k, fallback) => { try { return localStorage.getItem(k) || fallback; } catch { return fallback; } };
+let layout = pref("launcher-layout", "grid"), cards = pref("launcher-cards", "normal"), wallpaper = pref("launcher-wallpaper", "plain");
+let maxTabs = Math.min(12, Math.max(1, Number(pref("maxTabs", "6")) || 6));
+for (const [id, value, key] of [["layout",layout,"launcher-layout"],["cards",cards,"launcher-cards"],["wallpaper",wallpaper,"launcher-wallpaper"]]) {
+  const el = $("#" + id); el.value = value;
+  el.onchange = () => { localStorage.setItem(key, el.value); touchPref(id, el.value); layout = $("#layout").value; cards = $("#cards").value; wallpaper = $("#wallpaper").value; document.body.dataset.wallpaper = wallpaper; renderGrid(); };
+}
+$("#tabcount").innerHTML = Array.from({length:12},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join("");
+$("#tabcount").value = maxTabs;
+$("#tabcount").onchange = e => { maxTabs = Number(e.target.value); localStorage.setItem("maxTabs",String(maxTabs)); touchPref("maxTabs", maxTabs); toast("Maximum tabs: " + maxTabs); };
+document.body.dataset.wallpaper = wallpaper;
+const THEMES = ["auto", "light", "dark", "ocean", "forest"], status = {};
+let theme = "auto"; try { theme = localStorage.getItem("theme") || "auto"; } catch {}
+function applyTheme() {
+  if (theme === "auto") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = theme;
+}
+applyTheme();
+$("#th").onclick = () => {
+  theme = THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length]; applyTheme();
+  try { localStorage.setItem("theme", theme); } catch {} touchPref("theme", theme); toast("Theme: " + theme);
+};
+
+function toast(m, bad) {
+  const t = $("#toast"); t.textContent = m; t.className = "show" + (bad ? " bad" : "");
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.className = "", 2600);
+}
+const api = (method, body) => fetch("/api/apps", {
+  method, headers: { "Content-Type": "application/json", "X-Requested-With": "launcher" }, body: body ? JSON.stringify(body) : undefined
+}).then(r => r.json());
+
+async function load() {
+  try { const d = await api("GET"); if (!Array.isArray(d.apps)) throw 0; apps = d.apps; admin = !!d.admin; loadErr = false; }
+  catch { loadErr = true; toast("Couldn’t load apps", 1); }
+  dirty = false; render(); checkAll();
+}
+
+// ---- Automatic cross-device sync: merge, never overwrite ----
+const SK = "sync-key", PREFK = { layout: "launcher-layout", cards: "launcher-cards", wallpaper: "launcher-wallpaper", theme: "theme", maxTabs: "maxTabs" };
+const load2 = (k, d) => { try { return JSON.parse(localStorage.getItem(k) || d); } catch { return JSON.parse(d); } };
+const save2 = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+const deviceId = (() => { let d = pref("device-id", ""); if (!/^[a-f0-9]{12}$/.test(d)) { d = crypto.randomUUID().replace(/-/g, "").slice(0, 12); try { localStorage.setItem("device-id", d); } catch {} } return d; })();
+let favMeta = load2("fav-meta", "{}"), prefMeta = load2("pref-meta", "{}"), usesOthers = load2("uses-others", "{}");
+let syncKey = pref(SK, ""), syncTimer = 0, syncBusy = false, embed = load2("embed", "{}");
+const totalUses = id => (uses[id] || 0) + Object.values(usesOthers).reduce((s, m) => s + (m[id] || 0), 0);
+const curPrefs = () => ({ layout, cards, wallpaper, theme, maxTabs: String(maxTabs) });
+function touchPref(k, v) { prefMeta[k] = [String(v), Date.now()]; save2("pref-meta", prefMeta); scheduleSync(); }
+function localState() {
+  const f = {}; for (const id of favs) f[id] = [1, favMeta[id] && favMeta[id][0] === 1 ? favMeta[id][1] : 1];
+  for (const [id, m] of Object.entries(favMeta)) if (m[0] === 0) f[id] = m;
+  const p = {}, c = curPrefs(); for (const k in c) p[k] = [c[k], (prefMeta[k] || [0, 1])[1]];
+  return { favs: f, uses: { [deviceId]: Object.fromEntries(Object.entries(uses).slice(0, 100)) }, prefs: p };
+}
+function applyPref(k, v) {
+  const ok = { layout: ["grid", "list", "compact"], cards: ["normal", "small", "large"], wallpaper: ["plain", "soft", "warm"], theme: THEMES };
+  if (k === "maxTabs") { const n = Number(v); if (!(n >= 1 && n <= 12)) return; maxTabs = n; $("#tabcount").value = n; }
+  else if (!ok[k] || !ok[k].includes(v)) return;
+  else if (k === "theme") { theme = v; applyTheme(); }
+  else { if (k === "layout") layout = v; if (k === "cards") cards = v; if (k === "wallpaper") { wallpaper = v; document.body.dataset.wallpaper = v; } $("#" + k).value = v; }
+  try { localStorage.setItem(PREFK[k], String(v)); } catch {}
+}
+function applyMerged(d) {
+  favMeta = d.favs; save2("fav-meta", favMeta);
+  favs = Object.keys(favMeta).filter(id => favMeta[id][0] === 1); saveFavs();
+  usesOthers = Object.fromEntries(Object.entries(d.uses).filter(([k]) => k !== deviceId)); save2("uses-others", usesOthers);
+  for (const [k, [v, ts]] of Object.entries(d.prefs)) {
+    const mine = (prefMeta[k] || [0, 1])[1];
+    if (ts > mine) { if (curPrefs()[k] !== v) applyPref(k, v); prefMeta[k] = [v, ts]; }
+  }
+  save2("pref-meta", prefMeta);
+}
+async function syncNow(silent) {
+  const code = $("#sync-key").value || syncKey, msg = $("#sync-message");
+  if (code.length < 20) { if (!silent) msg.textContent = "Enter a sync key of at least 20 characters."; return; }
+  if (syncBusy) return; syncBusy = true;
+  if (!silent) msg.textContent = "Syncing…";
+  try {
+    const r = await fetch("/api/sync", { method: "POST", headers: { "Content-Type": "application/json", "X-Requested-With": "launcher" }, body: JSON.stringify({ action: "sync", code, data: localState() }) });
+    const j = await r.json(); if (!r.ok) throw Error(j.error || "Sync failed");
+    applyMerged(j.data);
+    if ($("#sync-remember").checked) { syncKey = code; try { localStorage.setItem(SK, code); } catch {} }
+    msg.textContent = "Synced at " + new Date().toLocaleTimeString() + (syncKey ? " · auto-sync on" : "");
+    if (!editing) renderGrid();
+  } catch (e) { msg.textContent = e.message + (silent ? " (will retry)" : ". Cloud sync needs the deployed Netlify site."); }
+  finally { syncBusy = false; }
+}
+function scheduleSync() { if (!syncKey) return; clearTimeout(syncTimer); syncTimer = setTimeout(() => syncNow(true), 4000); }
+$("#sync-now").onclick = () => syncNow(false);
+$("#sync-remember").checked = !!syncKey;
+$("#sync-remember").onchange = e => {
+  if (!e.target.checked) { syncKey = ""; try { localStorage.removeItem(SK); } catch {} $("#sync-message").textContent = "Auto-sync off. Key forgotten on this device."; }
+  else if ($("#sync-key").value.length >= 20) syncNow(false);
+  else { e.target.checked = false; $("#sync-message").textContent = "Type your key first."; }
+};
+document.addEventListener("visibilitychange", () => { if (!document.hidden && syncKey) syncNow(true); });
+setInterval(() => { if (syncKey && !document.hidden) syncNow(true); }, 300000);
+
+// ---- Embedding help and install ----
+$("#wfix").onclick = async () => {
+  const s = `/*\n  Content-Security-Policy: frame-ancestors 'self' ${location.origin}\n`;
+  try { await navigator.clipboard.writeText(s); toast("Copied. Put it in the app’s _headers file, remove any X-Frame-Options, redeploy that app."); }
+  catch { prompt("Copy this into the app’s _headers file:", s); }
+};
+$("#wtab").onclick = async () => {
+  const a = apps.find(x => x.id === active); if (!a) return;
+  a.mode = "tab";
+  try { const d = await api("PUT", { apps }); if (d.ok) { apps = d.apps; toast("This app will now open in a new tab"); } else toast(d.error || "Couldn’t save", 1); }
+  catch { toast("Network error", 1); }
+};
+let deferredInstall;
+addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferredInstall = e; $("#install").hidden = false; });
+addEventListener("appinstalled", () => { $("#install").hidden = true; });
+$("#install").onclick = async () => { if (!deferredInstall) return; deferredInstall.prompt(); await deferredInstall.userChoice; deferredInstall = null; $("#install").hidden = true; };
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent), standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+if (isIOS && !standalone && !pref("ios-tip", "")) $("#iostip").hidden = false;
+$("#iosx").onclick = () => { $("#iostip").hidden = true; try { localStorage.setItem("ios-tip", "1"); } catch {} };
+
+let cameraStream = null;
+const cameraPreview = $("#camera-preview");
+function stopCameraTest() { if (cameraStream) cameraStream.getTracks().forEach(t=>t.stop()); cameraStream=null; cameraPreview.srcObject=null; cameraPreview.hidden=true; $("#camera-stop").hidden=true; }
+function deviceReport(extra="") { const installed=matchMedia("(display-mode: standalone)").matches||navigator.standalone===true; $("#device-report").textContent=`HTTPS/secure: ${isSecureContext ? "Yes":"No"}\nCamera API: ${navigator.mediaDevices?.getUserMedia ? "Available":"Unavailable"}\nInstalled/standalone: ${installed ? "Yes":"No"}\nNative fullscreen: ${document.documentElement.requestFullscreen ? "Available":"Immersive fallback"}`+(extra?`\nCamera: ${extra}`:""); }
+deviceReport();
+$("#camera-test").onclick=async()=>{stopCameraTest();try {if(!navigator.mediaDevices?.getUserMedia)throw Error("Camera API unavailable; HTTPS required");cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});cameraPreview.srcObject=cameraStream;cameraPreview.hidden=false;$("#camera-stop").hidden=false;deviceReport("Permission granted; preview active");cameraPreview.play().catch(()=>{});}catch(e){deviceReport(e.name==="NotAllowedError"?"Permission denied; check browser settings":e.message||e.name);}};
+$("#camera-stop").onclick=()=>{stopCameraTest();deviceReport("Stopped");};
+document.addEventListener("visibilitychange",()=>{if(document.hidden)stopCameraTest();});addEventListener("pagehide",stopCameraTest);addEventListener("pageshow",()=>deviceReport());
+const iconHtml = a => a.icon && a.icon.startsWith("data:image/")
+  ? `<img src="${esc(a.icon)}" alt="">` : esc(a.icon || (a.name || "?").slice(0, 1));
+
+function render() {
+  $("#hdr").innerHTML = admin
+    ? `<button id="ed">${editing ? "Done" : "Edit"}</button><button id="lo">Log out</button>`
+    : `<button id="ad">Admin</button>`;
+  if ($("#ed")) $("#ed").onclick = () => {
+    if (editing && dirty && !confirm("Discard unsaved changes?")) return;
+    if (editing) { editing = false; load(); } else { editing = true; render(); }
+  };
+  if ($("#lo")) $("#lo").onclick = async () => { await api("POST", { action: "logout" }); editing = false; load(); };
+  if ($("#ad")) $("#ad").onclick = () => { $("#modal").style.display = "flex"; $("#lerr").textContent = ""; $("#pw").value = ""; $("#pw").focus(); };
+  $("#tools").style.display = $("#chips").style.display = editing ? "none" : "";
+  editing ? renderEditor() : renderGrid();
+}
+
+function renderGrid() {
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const visible = apps.filter(a=>!a.hidden);
+  $("#overview").innerHTML = `<h2>${greeting} 👋</h2><p>${new Date().toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})} · ${visible.length} apps · ${tabs.length} running · ${favs.length} favorites</p>`;
+  const cats = ["All", ...new Set(apps.flatMap(a => [a.category,a.folder]).filter(Boolean))];
+  if (!cats.includes(cat)) cat = "All";
+  $("#chips").innerHTML = cats.length > 1
+    ? cats.map(c => `<button class="chip ${c === cat ? "on" : ""}" data-c="${esc(c)}">${esc(c)}</button>`).join("") : "";
+  document.querySelectorAll(".chip").forEach(b => b.onclick = () => { cat = b.dataset.c; renderGrid(); });
+  let list = apps.filter(a => (cat === "All" || a.category === cat || a.folder === cat) &&
+    (a.name + " " + (a.category || "") + " " + (a.folder || "") + " " + (a.description || "")).toLowerCase().includes(q.toLowerCase()));
+  list = [...list.filter(a => favs.includes(a.id)), ...list.filter(a => !favs.includes(a.id))];
+  $("#main").innerHTML = list.length
+    ? `<div class="grid layout-${esc(layout)} card-${esc(cards)}">${list.map(a => `<div class="app ${a.hidden ? "dim" : ""}" data-id="${esc(a.id)}">
+        <button class="star ${favs.includes(a.id) ? "on" : ""}" data-s="${esc(a.id)}">${favs.includes(a.id) ? "★" : "☆"}</button>
+        <div class="ico">${iconHtml(a)}</div><div class="nm">${esc(a.name)}</div>
+        <div class="ct"><i class="dot ${status[a.id] || ""}" title="${status[a.id] || "not checked"}"></i>${esc(a.folder ? "📁 " + a.folder + " · " : "")}${esc(a.category || "")}${a.description ? " · " + esc(a.description) : ""}${a.hidden ? " · hidden" : ""}${embed[a.id] === "blocked" ? " · opens in tab" : ""}</div></div>`).join("")}</div>`
+    : loadErr && !apps.length ? '<div class="empty">Couldn’t load your apps.<br><br><button id="retry">Retry</button></div>' : `<div class="empty">${apps.length ? "No matches." : "No apps yet." + (admin ? " Tap Edit to add one." : "")}</div>`;
+  const run = tabs.map(t => apps.find(a => a.id === t.id)).filter(Boolean);
+  const rec = recent.map(id => apps.find(a => a.id === id)).filter(a => a && !run.includes(a));
+  const sec = (t, l) => l.length ? `<div class="sec">${t}</div><div class="mini">${l.map(a => `<button class="chip" data-r="${esc(a.id)}">${esc(a.name)}</button>`).join("")}</div>` : "";
+  if (!q && cat === "All") $("#main").insertAdjacentHTML("afterbegin", sec("Running", run) + sec("Recent", rec));
+  document.querySelectorAll("[data-r]").forEach(b => b.onclick = () => openApp(apps.find(a => a.id === b.dataset.r)));
+  if ($("#retry")) $("#retry").onclick = load;
+  document.querySelectorAll(".app").forEach(el => el.onclick = () => openApp(apps.find(a => a.id === el.dataset.id)));
+  document.querySelectorAll(".star").forEach(b => b.onclick = e => {
+    e.stopPropagation(); const id = b.dataset.s;
+    const on = !favs.includes(id); favs = on ? [...favs, id] : favs.filter(x => x !== id); favMeta[id] = [on ? 1 : 0, Date.now()]; save2("fav-meta", favMeta); saveFavs(); scheduleSync(); renderGrid();
+  });
+}
+
+function renderEditor() {
+  $("#main").innerHTML = `<div class="panel">
+    <div class="bar"><button id="add">+ Add app</button><button id="imp">Restore (upload)</button><button id="exp">Backup (download)</button>
+    <button class="primary" id="save">Save</button></div>
+    ${apps.map((a, i) => `<div class="row" data-i="${i}">
+      <div class="ico">${iconHtml(a)}</div>
+      <div class="acts"><button class="drag" data-drag="${i}">⠿</button><button data-up="${i}">▲</button><button data-dn="${i}">▼</button><button data-img="${i}">Logo</button><button data-ic="${i}">Emoji</button><button data-pv="${i}">Preview</button></div>
+      <input type="text" class="full" data-f="name" value="${esc(a.name)}" placeholder="Name">
+      <input type="text" class="full" data-f="category" value="${esc(a.category)}" placeholder="Category (optional)">
+      <input type="text" class="full" data-f="folder" value="${esc(a.folder || "")}" placeholder="Folder (optional)">
+      <input type="text" class="full" data-f="description" value="${esc(a.description || "")}" placeholder="Description (optional)">
+      <input type="text" class="full" data-f="url" value="${esc(a.url)}" placeholder="https://yourapp.netlify.app">
+      <select class="full" data-f="mode"><option value="frame" ${a.mode !== "tab" ? "selected" : ""}>Open inside launcher</option><option value="tab" ${a.mode === "tab" ? "selected" : ""}>Open in new tab</option></select>
+      <div class="ct full">Opened ${totalUses(a.id)}× ${syncKey ? "across synced devices" : "on this device"}</div>
+      <label class="full"><input type="checkbox" data-f="hidden" ${a.hidden ? "checked" : ""}> Hidden from visitors</label>
+      <button class="danger full" data-del="${i}">Remove</button></div>`).join("")}</div>`;
+  document.querySelectorAll(".row").forEach(row => row.querySelectorAll("[data-f]").forEach(inp =>
+    inp.oninput = inp.onchange = () => { apps[row.dataset.i][inp.dataset.f] = inp.type === "checkbox" ? inp.checked : inp.value; dirty = true; }));
+  const mv = (i, d) => { const j = i + d; if (j < 0 || j >= apps.length) return; [apps[i], apps[j]] = [apps[j], apps[i]]; dirty = true; renderEditor(); };
+  document.querySelectorAll("[data-up]").forEach(b => b.onclick = () => mv(+b.dataset.up, -1));
+  document.querySelectorAll("[data-dn]").forEach(b => b.onclick = () => mv(+b.dataset.dn, 1));
+  document.querySelectorAll("[data-del]").forEach(b => b.onclick = () => {
+    const a = apps[b.dataset.del];
+    if (confirm(`Remove “${a.name || "this app"}”? This only applies after you tap Save.`)) { apps.splice(b.dataset.del, 1); dirty = true; renderEditor(); }
+  });
+  document.querySelectorAll("[data-img]").forEach(b => b.onclick = () => { imgIdx = +b.dataset.img; $("#img").click(); });
+  document.querySelectorAll("[data-ic]").forEach(b => b.onclick = () => {
+    const v = prompt("Emoji or a letter for the icon"); if (v !== null) { apps[b.dataset.ic].icon = v.slice(0, 8); dirty = true; renderEditor(); }
+  });
+  $("#add").onclick = () => { apps.push({ id: crypto.randomUUID(), name: "", category: "", folder: "", description: "", icon: "", url: "https://", mode: "frame", hidden: false }); dirty = true; renderEditor(); };
+  document.querySelectorAll("[data-pv]").forEach(b => b.onclick = () => {
+    const a = apps[b.dataset.pv], u = checkUrl((a.url || "").trim());
+    if (!u) { toast("Enter a valid https:// link first", 1); return; }
+    openApp({ id: "preview-" + a.id, name: a.name || "Preview", url: u, mode: "frame" });
+  });
+  document.querySelectorAll("[data-drag]").forEach(h => h.onpointerdown = e => {
+    e.preventDefault(); h.setPointerCapture(e.pointerId);
+    const row = h.closest(".row"), panel = row.parentNode; row.style.opacity = .5;
+    h.onpointermove = ev => {
+      const r = document.elementsFromPoint(ev.clientX, ev.clientY).map(x => x.closest(".row")).find(x => x && x !== row);
+      if (!r) return;
+      const rs = [...panel.querySelectorAll(".row")];
+      panel.insertBefore(row, rs.indexOf(row) < rs.indexOf(r) ? r.nextSibling : r);
+    };
+    h.onpointerup = h.onpointercancel = () => {
+      h.onpointermove = h.onpointerup = h.onpointercancel = null;
+      const order = [...panel.querySelectorAll(".row")].map(x => +x.dataset.i);
+      if (order.some((v, k) => v !== k)) { apps = order.map(i => apps[i]); dirty = true; }
+      renderEditor();
+    };
+  });
+  $("#save").onclick = save;
+  $("#exp").onclick = () => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(apps, null, 2)], { type: "application/json" }));
+    a.download = "apps-backup-" + new Date().toISOString().slice(0, 10) + ".json"; a.click();
+  };
+  $("#imp").onclick = () => $("#file").click();
+}
+
+$("#file").onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    if (f.size > 2e6) throw new Error("File too large");
+    const d = JSON.parse(await f.text()), list = Array.isArray(d) ? d : d.apps;
+    if (!Array.isArray(list)) throw new Error("No app list found in that file");
+    const seen = new Set(), ok = []; let skipped = 0;
+    for (const a of list.slice(0, 100)) {
+      const u = a && typeof a === "object" ? checkUrl(String(a.url || "").trim()) : null, k = u && u.replace(/\/$/, "").toLowerCase();
+      if (!u || seen.has(k)) { skipped++; continue; }
+      seen.add(k);
+      const ic = String(a.icon || "");
+      ok.push({ id: String(a.id || crypto.randomUUID()).slice(0, 60), name: String(a.name || "App").slice(0, 60),
+        category: String(a.category || "").slice(0, 30), folder: String(a.folder || "").slice(0, 40), description: String(a.description || "").slice(0, 160), icon: ic.startsWith("data:image/") ? (ic.length <= 30000 ? ic : "") : ic.slice(0, 8),
+        url: u, mode: a.mode === "tab" ? "tab" : "frame", hidden: !!a.hidden });
+    }
+    if (!ok.length) throw new Error("No valid apps in that file");
+    apps = ok; dirty = true; renderEditor();
+    toast(`Imported ${ok.length}${skipped ? `, skipped ${skipped} invalid or duplicate` : ""}. Tap Save to keep it.`);
+  } catch (err) { toast(err instanceof SyntaxError || !err.message ? "That file isn’t valid JSON" : err.message, 1); }
+  e.target.value = "";
+};
+
+$("#img").onchange = e => {
+  const f = e.target.files[0]; e.target.value = ""; if (!f || imgIdx < 0) return;
+  const im = new Image();
+  im.onload = () => {
+    const c = document.createElement("canvas"); c.width = c.height = 96;
+    const s = Math.min(im.width, im.height);
+    c.getContext("2d").drawImage(im, (im.width - s) / 2, (im.height - s) / 2, s, s, 0, 0, 96, 96);
+    apps[imgIdx].icon = c.toDataURL("image/webp", .85); dirty = true; renderEditor();
+  };
+  im.onerror = () => toast("Couldn’t read that image", 1);
+  im.src = URL.createObjectURL(f);
+};
+
+function checkUrl(u) {
+  try { const x = new URL(u); const h = x.hostname; return x.protocol === "https:" && !x.username && h.includes(".") && !/^[\d.]+$/.test(h) && !h.startsWith("[") && !/(^|\.)(localhost|local|internal|lan)$/i.test(h) ? x.href : null; }
+  catch { return null; }
+}
+function validate(list) {
+  const seen = new Set();
+  for (const [i, a] of list.entries()) {
+    if (!(a.name || "").trim()) return `App ${i + 1} needs a name`;
+    const u = checkUrl((a.url || "").trim()); if (!u) return `“${a.name}” needs a valid public https:// link`;
+    const k = u.replace(/\/$/, "").toLowerCase(); if (seen.has(k)) return `“${a.name}” has the same link as another app`;
+    seen.add(k); a.url = u;
+  }
+  return "";
+}
+function watch(t) {
+  t.slow = false; clearTimeout(t.w);
+  t.f.onload = () => { t.slow = false; clearTimeout(t.w); if (active === t.id) $("#warn").hidden = true; };
+  t.w = setTimeout(() => { t.slow = true; if (active === t.id) $("#warn").hidden = false; }, 8000);
+}
+async function save() {
+  const err = validate(apps); if (err) { toast(err, 1); return; }
+  const b = $("#save"); b.disabled = true; b.textContent = "Saving…";
+  try {
+    const d = await api("PUT", { apps });
+    if (d.ok) { apps = d.apps; dirty = false; editing = false; toast("Saved ✓"); render(); return; }
+    toast(d.error || "Save failed", 1);
+    if (/log in/i.test(d.error || "")) { admin = false; editing = false; render(); }
+  } catch { toast("Network error, not saved", 1); }
+  b.disabled = false; b.textContent = "Save";
+}
+
+$("#lf").onsubmit = async e => {
+  e.preventDefault();
+  const b = $("#ls"); b.disabled = true; b.textContent = "Checking…";
+  try {
+    const d = await api("POST", { action: "login", password: $("#pw").value });
+    if (d.ok) { $("#modal").style.display = "none"; await load(); toast("Logged in"); }
+    else $("#lerr").textContent = d.error || "Login failed";
+  } catch { $("#lerr").textContent = "Network error"; }
+  b.disabled = false; b.textContent = "Sign in";
+};
+$("#lc").onclick = () => $("#modal").style.display = "none";
+$("#q").oninput = e => { q = e.target.value; renderGrid(); };
+
+const tabs = []; let active = null;
+
+function openApp(a) {
+  if (!a) return;
+  stopCameraTest();
+  if (!a.id.startsWith("preview-")) {
+    recent = [a.id, ...recent.filter(x => x !== a.id)].slice(0, 5); uses[a.id] = (uses[a.id] || 0) + 1;
+    try { localStorage.setItem("recent", JSON.stringify(recent)); localStorage.setItem("uses", JSON.stringify(uses)); } catch {}
+    scheduleSync();
+  }
+  if (a.mode === "tab" || embed[a.id] === "blocked") {
+    if (a.mode !== "tab") toast(`“${a.name}” doesn’t allow embedding, so it opened in a new tab`);
+    window.open(a.url, "_blank", "noopener"); return;
+  }
+  let t = tabs.find(x => x.id === a.id);
+  if (!t) {
+    if (tabs.length >= maxTabs) { toast(`Close a tab first (max ${maxTabs})`, 1); return; }
+    const f = document.createElement("iframe");
+    f.allow = "camera *; microphone *; clipboard-write *; fullscreen *"; f.setAttribute("allowfullscreen", ""); f.referrerPolicy = "strict-origin-when-cross-origin"; f.src = a.url; $("#frames").append(f);
+    t = { id: a.id, name: a.name, url: a.url, f }; tabs.push(t); watch(t);
+  }
+  show(t.id);
+}
+function show(id) {
+  active = id; $("#viewer").style.display = "flex";
+  const t = tabs.find(x => x.id === id);
+  if (!t) { goHome(); return; }
+  tabs.forEach(x => x.f.classList.toggle("on", x === t));
+  $("#vopen").href = t.url; $("#warn").hidden = !t.slow; $("#wtab").hidden = !admin; drawTabs();
+}
+function drawTabs() {
+  $("#tabs").innerHTML = tabs.map(t => `<span class="tab ${t.id === active ? "on" : ""}" data-t="${esc(t.id)}">${esc(t.name)}<b data-x="${esc(t.id)}">×</b></span>`).join("");
+}
+$("#tabs").onclick = e => {
+  const x = e.target.closest("[data-x]"), t = e.target.closest("[data-t]");
+  if (x) { const tb = tabs.find(k => k.id === x.dataset.x); if (confirm(`Close “${tb ? tb.name : "this app"}”? Anything unsaved in it will be lost.`)) closeTab(x.dataset.x); } else if (t) show(t.dataset.t);
+};
+function closeTab(id) {
+  const i = tabs.findIndex(x => x.id === id); if (i < 0) return; tabs[i].f.remove(); tabs.splice(i, 1);
+  if (!tabs.length) goHome(); else if (active === id) show(tabs[Math.max(0, i - 1)].id); else drawTabs();
+}
+function goHome() { $("#viewer").style.display = "none"; active = null; exitFs(); if (!editing) renderGrid(); }
+document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement) $("#viewer").classList.remove("imm"); });
+function enterFs() { $("#viewer").classList.add("imm"); const e=document.documentElement; if(e.requestFullscreen)e.requestFullscreen().catch(()=>toast("Immersive mode active")); else toast("Immersive mode active"); }
+function exitFs() { $("#viewer").classList.remove("imm"); if (document.fullscreenElement) document.exitFullscreen(); }
+$("#rl").onclick = () => { const t = tabs.find(x => x.id === active); if (t) { t.f.src = t.url; watch(t); $("#warn").hidden = true; } };
+addEventListener("beforeunload", e => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
+$("#home").onclick = goHome; $("#fs").onclick = enterFs; $("#exitfs").onclick = exitFs;
+
+
+async function checkAll() {
+  try { const response = await fetch("/api/status", {cache:"no-store"}); if (!response.ok) throw Error(); const j = await response.json(); embed = j._embed || {}; delete j._embed; Object.assign(status, j); try { sessionStorage.setItem("embed", JSON.stringify(embed)); } catch {} } catch { toast("Status checks unavailable", 1); }
+  if (!editing) renderGrid();
+}
+
+addEventListener("keydown", e => {
+  const typing = /INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName);
+  if (e.key === "Escape") {
+    if ($("#modal").style.display === "flex") $("#modal").style.display = "none";
+    else if ($("#viewer").classList.contains("imm")) exitFs();
+    else if (active) goHome();
+  } else if (e.altKey && /^[1-9]$/.test(e.key)) {
+    const t = tabs[e.key - 1]; if (t) { e.preventDefault(); show(t.id); }
+  } else if (e.key === "/" && !typing && !active && !editing) { e.preventDefault(); $("#q").focus(); }
+});
+
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
+load();
+if (syncKey) syncNow(true);
+</script>
+</body>
+</html>
